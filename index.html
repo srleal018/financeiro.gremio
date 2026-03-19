@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,9 +26,15 @@
             </div>
             <h1 class="text-2xl font-bold mb-2">Grêmio Geração Consciente</h1>
             <p class="text-slate-500 mb-8">Sistema de Gestão Financeira</p>
-            <button id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-blue-500/50">
+            
+            <button id="btn-login-microsoft" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-3 shadow-md hover:shadow-blue-500/50 mb-4">
                 <i class="fa-brands fa-microsoft text-xl"></i>
                 Entrar com Microsoft
+            </button>
+
+            <button id="btn-login-google" class="w-full bg-white hover:bg-slate-50 text-slate-700 font-bold py-3 px-4 border border-slate-300 rounded-lg transition-all duration-300 flex items-center justify-center gap-3 shadow-sm hover:shadow-md">
+                <i class="fa-brands fa-google text-red-500 text-xl"></i>
+                Entrar com Google
             </button>
         </div>
     </div>
@@ -41,7 +47,7 @@
             </div>
             <div class="flex items-center gap-4">
                 <div class="text-right hidden sm:block">
-                    <p id="user-name" class="font-semibold text-sm">Carregando...</p>
+                    <p id="user-name" class="font-semibold text-sm">A carregar...</p>
                     <p id="user-email" class="text-green-200 text-xs">...</p>
                 </div>
                 <button id="btn-logout" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-sm font-bold transition">Sair</button>
@@ -75,7 +81,7 @@
 
                         <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-blue-500 h-fit sticky top-6">
                             <h3 class="font-bold text-lg mb-4 text-blue-700">Total Calculado</h3>
-                            <div class="text-5xl font-black text-slate-800 mb-6" id="total-display">R$ 0,00</div>
+                            <div class="text-5xl font-black text-slate-800 mb-6" id="total-display">€ 0,00</div>
                             <button onclick="transferToOperation()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-lg transition shadow-lg">
                                 <i class="fa-solid fa-arrow-right-arrow-left mr-2"></i> Usar valor em Operação
                             </button>
@@ -87,7 +93,7 @@
                 </div>
 
                 <div id="tab-operacoes" class="tab-content hidden-app slide-up">
-                    <h2 class="text-2xl font-bold mb-6 text-slate-700 border-b pb-2">Registrar Operação</h2>
+                    <h2 class="text-2xl font-bold mb-6 text-slate-700 border-b pb-2">Registar Operação</h2>
                     <div class="bg-white max-w-xl p-8 rounded-xl shadow-md border-t-4 border-purple-500">
                         <form id="form-operacao" class="space-y-5">
                             <div>
@@ -109,7 +115,7 @@
                             </div>
                             
                             <div>
-                                <label class="block text-sm font-semibold text-slate-600 mb-1">Valor (R$)</label>
+                                <label class="block text-sm font-semibold text-slate-600 mb-1">Valor</label>
                                 <input type="number" id="op-valor" step="0.01" min="0.01" required class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition text-lg font-bold">
                             </div>
 
@@ -119,7 +125,7 @@
                             </div>
 
                             <button type="submit" id="btn-submit-op" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 rounded-lg shadow-lg hover:shadow-purple-500/50 transition-all flex justify-center items-center gap-2">
-                                <i class="fa-solid fa-check-circle"></i> Confirmar Registro
+                                <i class="fa-solid fa-check-circle"></i> Confirmar Registo
                             </button>
                         </form>
                     </div>
@@ -140,7 +146,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="logs-table-body" class="text-sm divide-y divide-slate-200">
-                                    <tr><td colspan="5" class="p-8 text-center text-slate-500">Carregando logs...</td></tr>
+                                    <tr><td colspan="5" class="p-8 text-center text-slate-500">A carregar registos...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -152,8 +158,9 @@
     </div>
 
     <script type="module">
+        // Importação atualizada com o GoogleAuthProvider
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, OAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getAuth, OAuthProvider, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -169,7 +176,10 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const provider = new OAuthProvider('microsoft.com');
+        
+        // Fornecedores de Autenticação
+        const providerMicrosoft = new OAuthProvider('microsoft.com');
+        const providerGoogle = new GoogleAuthProvider();
 
         // Referências do DOM
         const loginScreen = document.getElementById('login-screen');
@@ -179,23 +189,35 @@
         let currentUser = null;
 
         // --- SISTEMA DE LOGIN ---
-        document.getElementById('btn-login').addEventListener('click', () => {
-            signInWithPopup(auth, provider).catch(err => {
-                console.error("Erro no login:", err);
-                alert("Erro ao fazer login. Verifique se a Microsoft está ativada no Firebase Auth.");
+        
+        // Login com Microsoft
+        document.getElementById('btn-login-microsoft').addEventListener('click', () => {
+            signInWithPopup(auth, providerMicrosoft).catch(err => {
+                console.error("Erro no login com Microsoft:", err);
+                alert("Erro ao iniciar sessão. Verifique se a Microsoft está ativada no Firebase Auth.");
             });
         });
 
+        // Login com Google
+        document.getElementById('btn-login-google').addEventListener('click', () => {
+            signInWithPopup(auth, providerGoogle).catch(err => {
+                console.error("Erro no login com Google:", err);
+                alert("Erro ao iniciar sessão. Verifique se o Google está ativado na consola do Firebase Auth.");
+            });
+        });
+
+        // Terminar Sessão
         document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
 
+        // Observador de estado de autenticação
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                userNameEl.textContent = user.displayName || "Usuário";
+                userNameEl.textContent = user.displayName || "Utilizador";
                 userEmailEl.textContent = user.email;
                 loginScreen.classList.add('hidden-app');
                 appScreen.classList.remove('hidden-app');
-                loadLogs(); // Carrega os dados
+                loadLogs(); // Carrega os dados do Firestore
             } else {
                 currentUser = null;
                 loginScreen.classList.remove('hidden-app');
@@ -209,10 +231,12 @@
         const totalDisplay = document.getElementById('total-display');
         let currentTotal = 0;
 
+        // Alterado para a moeda Euro ou Reais conforme a preferência (mantive a formatação local para PT)
         moneyValues.forEach(val => {
             const isNote = val >= 2;
             const id = `money-${val}`;
-            const formatVal = val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const formatVal = val.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' }); 
+            // Se preferir manter Reais, mude para: currency: 'BRL'
             
             inputsContainer.innerHTML += `
                 <div class="flex items-center justify-between bg-slate-50 p-2 border border-slate-200 rounded-lg">
@@ -231,14 +255,14 @@
                     sum += qtt * val;
                 });
                 currentTotal = sum;
-                totalDisplay.textContent = sum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                totalDisplay.textContent = sum.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
             }
         });
 
         window.clearCounter = () => {
             document.querySelectorAll('.money-calc').forEach(i => i.value = '');
             currentTotal = 0;
-            totalDisplay.textContent = 'R$ 0,00';
+            totalDisplay.textContent = '€ 0,00';
         };
 
         window.transferToOperation = () => {
@@ -261,7 +285,7 @@
             const btn = document.getElementById('btn-submit-op');
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> A guardar...';
 
             try {
                 await addDoc(collection(db, "operacoes"), {
@@ -274,14 +298,14 @@
                 });
                 
                 document.getElementById('form-operacao').reset();
-                alert("Operação registrada com sucesso!");
+                alert("Operação registada com sucesso!");
                 window.showTab('logs');
             } catch (error) {
-                console.error("Erro ao salvar:", error);
-                alert("Erro ao registrar operação.");
+                console.error("Erro ao guardar:", error);
+                alert("Erro ao registar operação.");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirmar Registro';
+                btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Confirmar Registo';
             }
         });
 
@@ -292,13 +316,13 @@
                 tbody.innerHTML = '';
                 
                 if(snapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500">Nenhuma operação registrada.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500">Nenhuma operação registada.</td></tr>';
                     return;
                 }
 
                 snapshot.forEach((doc) => {
                     const data = doc.data();
-                    const dataStr = data.data ? data.data.toDate().toLocaleString('pt-BR') : 'Agora';
+                    const dataStr = data.data ? data.data.toDate().toLocaleString('pt-PT') : 'Agora';
                     const isEntrada = data.tipo === 'entrada';
                     const corValor = isEntrada ? 'text-green-600' : 'text-red-600';
                     const iconTipo = isEntrada ? '<i class="fa-solid fa-arrow-down text-green-500"></i> Depósito' : '<i class="fa-solid fa-arrow-up text-red-500"></i> Retirada';
@@ -308,10 +332,10 @@
                     tr.innerHTML = `
                         <td class="p-4 text-slate-500 whitespace-nowrap">${dataStr}</td>
                         <td class="p-4 font-semibold">${iconTipo}</td>
-                        <td class="p-4 font-bold ${corValor}">${data.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                        <td class="p-4 font-bold ${corValor}">${data.valor.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</td>
                         <td class="p-4 text-slate-700">${data.descricao}</td>
                         <td class="p-4">
-                            <div class="font-semibold text-slate-800">${data.responsavelNome || 'Usuário'}</div>
+                            <div class="font-semibold text-slate-800">${data.responsavelNome || 'Utilizador'}</div>
                             <div class="text-xs text-slate-400">${data.responsavelEmail}</div>
                         </td>
                     `;
